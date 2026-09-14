@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Assistant</title>
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen flex flex-col items-center p-4">
+  <div class="w-full max-w-2xl mt-8">
+    <h1 class="text-2xl font-bold mb-4">Assistant</h1>
+    <div id="log" class="bg-gray-800 rounded-lg p-4 h-96 overflow-y-auto mb-4 space-y-2"></div>
+    <div class="flex gap-2">
+      <input id="prompt" type="text" placeholder="Type or speak..."
+        class="flex-1 bg-gray-800 rounded px-3 py-2 focus:outline-none">
+      <button id="mic" class="bg-gray-700 px-3 py-2 rounded">🎤</button>
+      <button id="send" class="bg-blue-600 px-4 py-2 rounded">Send</button>
+    </div>
+  </div>
+
+<script>
+const DEVICE_ID_KEY = "ai_assistant_device_id";
+let deviceId = localStorage.getItem(DEVICE_ID_KEY);
+if (!deviceId) {
+  deviceId = crypto.randomUUID();
+  localStorage.setItem(DEVICE_ID_KEY, deviceId);
+}
+const deviceType = /Mobi|Android/i.test(navigator.userAgent) ? "phone" : "desktop";
+
+const log = document.getElementById("log");
+const promptInput = document.getElementById("prompt");
+const sendBtn = document.getElementById("send");
+const micBtn = document.getElementById("mic");
+
+function addLine(text, who) {
+  const div = document.createElement("div");
+  div.className = who === "user" ? "text-right text-blue-300" : "text-left text-gray-200";
+  div.textContent = text;
+  log.appendChild(div);
+  log.scrollTop = log.scrollHeight;
+}
+
+async function sendPrompt() {
+  const text = promptInput.value.trim();
+  if (!text) return;
+  addLine(text, "user");
+  promptInput.value = "";
+
+  try {
+    const res = await fetch("/api/process", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ prompt: text, device_id: deviceId, device_type: deviceType })
+    });
+    const data = await res.json();
+    addLine(data.content || "(no response)", "assistant");
+  } catch (e) {
+    addLine("Error: " + e.message, "assistant");
+  }
+}
+
+sendBtn.onclick = sendPrompt;
+promptInput.addEventListener("keydown", e => { if (e.key === "Enter") sendPrompt(); });
+
+// Web Speech API
+if ("webkitSpeechRecognition" in window || "SpeechRecognition" in window) {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const recognition = new SpeechRecognition();
+  recognition.continuous = false;
+  recognition.onresult = e => {
+    promptInput.value = e.results[0][0].transcript;
+    sendPrompt();
+  };
+  micBtn.onclick = () => recognition.start();
+} else {
+  micBtn.disabled = true;
+  micBtn.title = "Speech recognition not supported";
+}
+</script>
+</body>
+</html>
