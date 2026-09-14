@@ -45,6 +45,7 @@ async function sendPrompt() {
   if (!text) return;
   addLine(text, "user");
   promptInput.value = "";
+  addLine("...", "assistant");
 
   try {
     const res = await fetch("/api/process", {
@@ -53,16 +54,15 @@ async function sendPrompt() {
       body: JSON.stringify({ prompt: text, device_id: deviceId, device_type: deviceType })
     });
     const data = await res.json();
-    addLine(data.content || "(no response)", "assistant");
+    log.lastChild.textContent = data.content || data.error || "(no response)";
   } catch (e) {
-    addLine("Error: " + e.message, "assistant");
+    log.lastChild.textContent = "Error: " + e.message;
   }
 }
 
 sendBtn.onclick = sendPrompt;
 promptInput.addEventListener("keydown", e => { if (e.key === "Enter") sendPrompt(); });
 
-// Web Speech API
 if ("webkitSpeechRecognition" in window || "SpeechRecognition" in window) {
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   const recognition = new SpeechRecognition();
