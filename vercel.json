@@ -1,7 +1,0 @@
-{
-  "functions": {
-    "api/process.py": {
-      "runtime": "python3.12"
-    }
-  }
-}
