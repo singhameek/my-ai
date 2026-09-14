@@ -1,9 +1,11 @@
 {
   "builds": [
-    { "src": "api/process.py", "use": "@vercel/python" }
+    { "src": "api/process.py", "use": "@vercel/python" },
+    { "src": "index.html", "use": "@vercel/static" }
   ],
   "routes": [
     { "src": "/api/process", "dest": "api/process.py" },
+    { "src": "/", "dest": "index.html" },
     { "src": "/(.*)", "dest": "/$1" }
   ]
 }
