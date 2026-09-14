@@ -10,14 +10,19 @@ router_model = genai.GenerativeModel(
     "gemini-flash-latest",
     generation_config={"response_mime_type": "application/json"}
 )
-deep_model = genai.GenerativeModel("gemini-pro-latest",tools="google_search_retrieval")
+deep_model = genai.GenerativeModel(
+    "gemini-pro-latest",
+    tools="google_search_retrieval"
+)
 
-ROUTER_PROMPT = """Output ONLY valid JSON, no markdown, no code fences, no prose:
+ROUTER_PROMPT = """You are a routing controller for a personal AI assistant. Output ONLY valid JSON, no markdown, no code fences, no prose:
 {"route": "local"|"direct"|"deep", "webhook_action": string|null, "answer": string|null}
 
-route=local -> prompt maps to a known device automation command (e.g. "turn on lights")
-route=direct -> short factual/conversational answer, put it in "answer"
-route=deep -> needs multi-step reasoning, code, or long-form output
+route=local -> prompt maps to a known device automation command (e.g. "turn on lights", "toggle wifi")
+route=direct -> short factual/conversational answer, put it in "answer". Be accurate and concise.
+route=deep -> needs multi-step reasoning, code, long-form output, or current/real-time information (news, prices, current office holders, recent events)
+
+Important: your training data has a cutoff and may be outdated on time-sensitive topics. If a direct question involves anything that could have changed recently, route it to "deep" instead of guessing.
 """
 
 def fire_webhook(url, payload):
