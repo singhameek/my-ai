@@ -10,7 +10,7 @@ router_model = genai.GenerativeModel(
     "gemini-flash-latest",
     generation_config={"response_mime_type": "application/json"}
 )
-deep_model = genai.GenerativeModel("gemini-pro-latest")
+deep_model = genai.GenerativeModel("gemini-pro-latest",tools="google_search_retrieval")
 
 ROUTER_PROMPT = """Output ONLY valid JSON, no markdown, no code fences, no prose:
 {"route": "local"|"direct"|"deep", "webhook_action": string|null, "answer": string|null}
